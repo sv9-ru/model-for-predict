@@ -1,0 +1,44 @@
+# КОНФИГУРАЦИОННЫЙ ФАЙЛ ДЛЯ МОДЕЛИ ПРЕДСКАЗАНИЯ
+# ==================================================
+
+# Пути к файлам
+model_path = /content/SVR_MFR_dataset1 (1).pkl          # Путь к модели
+dataset_path = /content/dataset1_full.xlsx              # Путь к датасету
+
+# Настройки данных
+MFR_obs_col = 5        # Номер колонки с MFR наблюдениями
+DD_col = 7             # Номер колонки с DD
+MFR_err_col = 8        # Номер колонки с MFR ошибкой
+DD_err_col = 10        # Номер колонки с DD ошибкой
+row_start = 3          # Строка начала данных (пропуск заголовков)
+
+# Режимы предсказания
+prediction_mode = dataset    # dataset - из датасета, manual - ручной ввод
+target_metric = MFR          # MFR или DD (что предсказывать)
+
+# Временные настройки
+prediction_interval = 0      # 0 - мгновенно, 1 - 1 секунда
+
+# Обработка данных
+normalize_data = True        # True - нормализовать, False - не нормализовать
+
+# Отображение
+show_progress = True         # Показывать прогресс
+max_display_samples = 10     # Максимум образцов для отображения
+
+# Сохранение результатов
+save_predictions = True                     # Сохранять предсказания в CSV
+predictions_output = /content/predictions_results.csv   # Путь для сохранения
+save_plots = True                           # Сохранять графики
+plots_dir = /content/plots/                 # Директория для графиков
+
+# ==================================================
+# ИНСТРУКЦИЯ:
+# ==================================================
+# • Для мгновенных предсказаний: prediction_interval = 0
+# • Для задержки 1 сек: prediction_interval = 1
+# • Для теста на датасете: prediction_mode = dataset
+# • Для ручного ввода: prediction_mode = manual
+# • Для MFR: target_metric = MFR
+# • Для DD: target_metric = DD
+# ==================================================
