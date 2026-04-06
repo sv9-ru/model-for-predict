@@ -47,7 +47,8 @@ times = []
 for i in range(len(X_scaled)):
     start = time.time()
     pred_scaled = model.predict(X_scaled[i].reshape(1, -1))
-    times.append(time.time() - start)
+    elapsed_time = time.time() - start
+    times.append(elapsed_time)
 
     pred = y_scaler.inverse_transform(pred_scaled.reshape(-1, 1))
     predictions.append(pred[0][0])
@@ -58,13 +59,15 @@ for i in range(len(X_scaled)):
 # РЕЗУЛЬТАТЫ
 y_true = y.flatten()
 predictions = np.array(predictions)
+times_ms = np.array(times) * 1000  # конвертируем в миллисекунды
 
-# ТАБЛИЦА
+# ТАБЛИЦА (с добавленным временем вычисления)
 results = pd.DataFrame({
     '№': range(1, len(predictions)+1),
     'Реальное': y_true,
     'Предсказанное': predictions,
-    'Ошибка': np.abs(y_true - predictions)
+    'Ошибка': np.abs(y_true - predictions),
+    'Время_мс': times_ms  # время вычисления для каждого пункта в миллисекундах
 })
 results.to_csv(OUTPUT_CSV, index=False)
 print(f"\n✓ Результаты сохранены в {OUTPUT_CSV}")
@@ -80,6 +83,10 @@ if VERBOSE:
     print(f"  MAE: {mean_absolute_error(y_true, predictions):.6f}")
     print(f"  RMSE: {np.sqrt(mean_squared_error(y_true, predictions)):.6f}")
     print(f"  R2: {r2_score(y_true, predictions):.6f}")
+    print(f"\nВремя вычисления по пунктам:")
+    print(f"  Общее время: {sum(times)*1000:.3f} мс")
+    print(f"  Медиана: {np.median(times)*1000:.3f} мс")
+    print(f"  Стандартное отклонение: {np.std(times)*1000:.3f} мс")
 
 # ГРАФИКИ
 if DRAW_PLOTS:
@@ -108,7 +115,17 @@ if DRAW_PLOTS:
     plt.savefig('./plot_comparison.png', dpi=300)
     plt.close()
 
-    print("✓ Графики сохранены: plot_predictions.png, plot_comparison.png")
+    # График 3: время вычисления по пунктам
+    plt.figure(figsize=(12,6))
+    plt.plot(times_ms, 'g-', marker='o', markersize=2)
+    plt.xlabel('Номер образца')
+    plt.ylabel('Время вычисления (мс)')
+    plt.title('Время предсказания для каждого образца')
+    plt.grid(True, alpha=0.3)
+    plt.savefig('./plot_inference_time.png', dpi=300)
+    plt.close()
+
+    print("✓ Графики сохранены: plot_predictions.png, plot_comparison.png, plot_inference_time.png")
 
 print("\n" + "="*50)
 print("ГОТОВО!")
