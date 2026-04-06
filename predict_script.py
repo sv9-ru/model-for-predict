@@ -3,6 +3,7 @@
 """
 Скрипт для предсказания с использованием загруженной модели
 Поддерживает предсказания из датасета или ручной ввод
+Работает в локальной директории (Raspberry Pi / любой Linux)
 """
 
 import numpy as np
@@ -20,14 +21,28 @@ import sys
 warnings.filterwarnings('ignore')
 
 # ==================================================
+# ОПРЕДЕЛЕНИЕ РАБОЧЕЙ ДИРЕКТОРИИ
+# ==================================================
+# Получаем директорию, где находится скрипт
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+# Если скрипт запущен не из своей директории, используем текущую рабочую
+WORK_DIR = os.getcwd()
+
+print(f"Рабочая директория: {WORK_DIR}")
+print(f"Директория скрипта: {SCRIPT_DIR}")
+
+# ==================================================
 # ФУНКЦИЯ ЗАГРУЗКИ КОНФИГУРАЦИИ
 # ==================================================
-def load_config(config_path='/content/config.txt'):
+def load_config(config_path=None):
     """Загрузка конфигурации из текстового файла"""
+    if config_path is None:
+        config_path = os.path.join(WORK_DIR, 'config.txt')
+    
     config = {}
 
     if not os.path.exists(config_path):
-        print(f" Файл конфигурации не найден: {config_path}")
+        print(f"Файл конфигурации не найден: {config_path}")
         print("Использую настройки по умолчанию")
         return get_default_config()
 
@@ -51,14 +66,14 @@ def load_config(config_path='/content/config.txt'):
                     else:
                         config[key] = value
 
-    print(f" Конфигурация загружена из {config_path}")
+    print(f"Конфигурация загружена из {config_path}")
     return config
 
 def get_default_config():
-    """Настройки по умолчанию"""
+    """Настройки по умолчанию (используем относительные пути)"""
     return {
-        'model_path': '/content/SVR_MFR_dataset1 (1).pkl',
-        'dataset_path': '/content/dataset1_full.xlsx',
+        'model_path': os.path.join(WORK_DIR, 'SVR_MFR_dataset1 (1).pkl'),
+        'dataset_path': os.path.join(WORK_DIR, 'dataset1_full.xlsx'),
         'MFR_obs_col': 5,
         'DD_col': 7,
         'MFR_err_col': 8,
@@ -71,9 +86,9 @@ def get_default_config():
         'show_progress': True,
         'max_display_samples': 10,
         'save_predictions': True,
-        'predictions_output': '/content/predictions_results.csv',
-        'save_plots': True,  # Новая настройка: сохранять графики
-        'plots_dir': '/content/plots/'  # Директория для сохранения графиков
+        'predictions_output': os.path.join(WORK_DIR, 'predictions_results.csv'),
+        'save_plots': True,
+        'plots_dir': os.path.join(WORK_DIR, 'plots')
     }
 
 # ==================================================
@@ -93,17 +108,17 @@ def manual_prediction_loop(model, X_scaler, y_scaler, config, feature_names=['MF
 
     while True:
         try:
-            print(f"\n Введите {feature_names[0]} и {feature_names[1]}:")
-            user_input = input("→ ").strip()
+            print(f"\nВведите {feature_names[0]} и {feature_names[1]}:")
+            user_input = input("-> ").strip()
 
             if user_input.lower() in ['q', 'quit', 'exit']:
-                print("\n Выход из режима ручного ввода")
+                print("\nВыход из режима ручного ввода")
                 break
 
             # Парсинг ввода
             values = user_input.split()
             if len(values) < 2:
-                print(" Ошибка: введите два числа через пробел")
+                print("Ошибка: введите два числа через пробел")
                 continue
 
             val1 = float(values[0])
@@ -134,20 +149,20 @@ def manual_prediction_loop(model, X_scaler, y_scaler, config, feature_names=['MF
             predictions_history.append(prediction)
 
             # Вывод результата
-            print(f"\n РЕЗУЛЬТАТ ПРЕДСКАЗАНИЯ:")
-            print(f"   • {feature_names[0]}: {val1}")
-            print(f"   • {feature_names[1]}: {val2}")
-            print(f"   • Предсказанный {config['target_metric']}: {prediction:.6f}")
-            print(f"   • Время предсказания: {pred_time*1000:.2f} мс")
+            print(f"\nРЕЗУЛЬТАТ ПРЕДСКАЗАНИЯ:")
+            print(f"   * {feature_names[0]}: {val1}")
+            print(f"   * {feature_names[1]}: {val2}")
+            print(f"   * Предсказанный {config['target_metric']}: {prediction:.6f}")
+            print(f"   * Время предсказания: {pred_time*1000:.2f} мс")
 
             # Задержка (если задана)
             if config['prediction_interval'] > 0:
                 time.sleep(config['prediction_interval'])
 
         except ValueError:
-            print(" Ошибка: введите корректные числа")
+            print("Ошибка: введите корректные числа")
         except Exception as e:
-            print(f" Ошибка при предсказании: {e}")
+            print(f"Ошибка при предсказании: {e}")
 
     return np.array(input_history) if input_history else np.array([]), np.array(predictions_history) if predictions_history else np.array([])
 
@@ -158,12 +173,14 @@ def main():
     print("="*60)
     print("СИСТЕМА ПРЕДСКАЗАНИЯ НА ОСНОВЕ ML МОДЕЛИ")
     print("="*60)
+    print(f"Рабочая директория: {WORK_DIR}")
 
     # Загрузка конфигурации
-    config = load_config('/content/config.txt')
+    config_path = os.path.join(WORK_DIR, 'config.txt')
+    config = load_config(config_path)
 
     # Вывод конфигурации
-    print("\n ТЕКУЩАЯ КОНФИГУРАЦИЯ:")
+    print("\nТЕКУЩАЯ КОНФИГУРАЦИЯ:")
     print("-"*40)
     for key, value in config.items():
         print(f"   {key}: {value}")
@@ -171,14 +188,15 @@ def main():
 
     # Создание директории для графиков
     if config.get('save_plots', True):
-        os.makedirs(config.get('plots_dir', '/content/plots/'), exist_ok=True)
-        print(f" Графики будут сохранены в: {config.get('plots_dir', '/content/plots/')}")
+        plots_dir = config.get('plots_dir', os.path.join(WORK_DIR, 'plots'))
+        os.makedirs(plots_dir, exist_ok=True)
+        print(f"Графики будут сохранены в: {plots_dir}")
 
     # Проверка режима предсказания
     if config['prediction_interval'] == 0:
-        print(" Режим предсказания: МГНОВЕННЫЙ (без задержки)")
+        print("Режим предсказания: МГНОВЕННЫЙ (без задержки)")
     else:
-        print(f"⏱  Режим предсказания: ЗАДЕРЖКА {config['prediction_interval']} сек")
+        print(f"Режим предсказания: ЗАДЕРЖКА {config['prediction_interval']} сек")
 
     # ==================================================
     # ЗАГРУЗКА МОДЕЛИ
@@ -188,9 +206,9 @@ def main():
         if not os.path.exists(config['model_path']):
             raise FileNotFoundError(f"Файл модели не найден: {config['model_path']}")
         model = joblib.load(config['model_path'])
-        print(f" Модель загружена: {type(model).__name__}")
+        print(f"Модель загружена: {type(model).__name__}")
     except Exception as e:
-        print(f" Ошибка загрузки модели: {e}")
+        print(f"Ошибка загрузки модели: {e}")
         return
 
     # ==================================================
@@ -200,7 +218,7 @@ def main():
     y_scaler = None
 
     if config['normalize_data'] and config['prediction_mode'] == 'manual':
-        print("\n  Для ручного режима с нормализацией нужны эталонные данные")
+        print("\nДля ручного режима с нормализацией нужны эталонные данные")
         print("   Будут использованы данные из датасета для обучения нормализаторов")
 
         if os.path.exists(config['dataset_path']):
@@ -211,33 +229,33 @@ def main():
 
                 X_scaler = preprocessing.StandardScaler().fit(X_temp)
                 y_scaler = preprocessing.StandardScaler().fit(y_temp)
-                print(" Нормализаторы обучены на датасете")
+                print("Нормализаторы обучены на датасете")
             except Exception as e:
-                print(f" Ошибка при обучении нормализаторов: {e}")
+                print(f"Ошибка при обучении нормализаторов: {e}")
                 config['normalize_data'] = False
         else:
-            print(" Датасет не найден, нормализация отключена")
+            print("Датасет не найден, нормализация отключена")
             config['normalize_data'] = False
 
     # ==================================================
     # РЕЖИМ ПРЕДСКАЗАНИЯ: ИЗ ДАТАСЕТА
     # ==================================================
     if config['prediction_mode'] == 'dataset':
-        print("\n РЕЖИМ ПРЕДСКАЗАНИЯ: ИЗ ДАТАСЕТА")
+        print("\nРЕЖИМ ПРЕДСКАЗАНИЯ: ИЗ ДАТАСЕТА")
 
         # Загрузка датасета
-        print("\n Загрузка датасета...")
+        print("\nЗагрузка датасета...")
         try:
             if not os.path.exists(config['dataset_path']):
                 raise FileNotFoundError(f"Файл датасета не найден: {config['dataset_path']}")
             dataset = pd.read_excel(config['dataset_path'])
-            print(f" Датасет загружен: {dataset.shape[0]} строк")
+            print(f"Датасет загружен: {dataset.shape[0]} строк")
         except Exception as e:
-            print(f" Ошибка загрузки датасета: {e}")
+            print(f"Ошибка загрузки датасета: {e}")
             return
 
         # Подготовка данных
-        print("\n Подготовка данных...")
+        print("\nПодготовка данных...")
         X_data = dataset.iloc[config['row_start']:, [config['MFR_obs_col'], config['DD_col']]].values.astype(float)
 
         if config['target_metric'] == 'MFR':
@@ -249,13 +267,13 @@ def main():
 
         # Нормализация
         if config['normalize_data']:
-            print(" Применяется нормализация...")
+            print("Применяется нормализация...")
             X_scaler = preprocessing.StandardScaler().fit(X_data)
             X_data_scaled = X_scaler.transform(X_data)
 
             y_scaler = preprocessing.StandardScaler().fit(y_data)
             y_data_scaled = y_scaler.transform(y_data)
-            print(" Данные нормализованы")
+            print("Данные нормализованы")
             use_scaled = True
         else:
             X_data_scaled = X_data
@@ -330,12 +348,12 @@ def main():
         print("\n", metrics_df.to_string(index=False))
 
         # Временные метрики
-        print(f"\n  ВРЕМЕННЫЕ МЕТРИКИ:")
-        print(f"   • Среднее время: {np.mean(prediction_times)*1000:.2f} мс")
-        print(f"   • Стд. отклонение: {np.std(prediction_times)*1000:.2f} мс")
-        print(f"   • Мин. время: {np.min(prediction_times)*1000:.2f} мс")
-        print(f"   • Макс. время: {np.max(prediction_times)*1000:.2f} мс")
-        print(f"   • Общее время: {np.sum(prediction_times):.2f} сек")
+        print(f"\nВРЕМЕННЫЕ МЕТРИКИ:")
+        print(f"   * Среднее время: {np.mean(prediction_times)*1000:.2f} мс")
+        print(f"   * Стд. отклонение: {np.std(prediction_times)*1000:.2f} мс")
+        print(f"   * Мин. время: {np.min(prediction_times)*1000:.2f} мс")
+        print(f"   * Макс. время: {np.max(prediction_times)*1000:.2f} мс")
+        print(f"   * Общее время: {np.sum(prediction_times):.2f} сек")
 
         # Сохранение результатов
         if config['save_predictions']:
@@ -347,11 +365,12 @@ def main():
                 'Prediction_Time_ms': prediction_times * 1000
             })
             results_df.to_csv(config['predictions_output'], index=False)
-            print(f"\n Результаты сохранены в: {config['predictions_output']}")
+            print(f"\nРезультаты сохранены в: {config['predictions_output']}")
 
             # Также сохраняем метрики в отдельный файл
-            metrics_df.to_csv('/content/metrics_summary.csv', index=False)
-            print(f" Метрики сохранены в: /content/metrics_summary.csv")
+            metrics_path = os.path.join(WORK_DIR, 'metrics_summary.csv')
+            metrics_df.to_csv(metrics_path, index=False)
+            print(f"Метрики сохранены в: {metrics_path}")
 
         # Построение и сохранение графиков
         residuals = y_true - predictions
@@ -361,7 +380,7 @@ def main():
     # РЕЖИМ ПРЕДСКАЗАНИЯ: РУЧНОЙ ВВОД
     # ==================================================
     else:
-        print("\n РЕЖИМ ПРЕДСКАЗАНИЯ: РУЧНОЙ ВВОД")
+        print("\nРЕЖИМ ПРЕДСКАЗАНИЯ: РУЧНОЙ ВВОД")
         input_data, predictions_history = manual_prediction_loop(model, X_scaler, y_scaler, config)
 
         if len(predictions_history) > 0:
@@ -373,12 +392,12 @@ def main():
                     f'Predicted_{config["target_metric"]}': predictions_history
                 })
                 results_df.to_csv(config['predictions_output'], index=False)
-                print(f"\n История предсказаний сохранена в: {config['predictions_output']}")
+                print(f"\nИстория предсказаний сохранена в: {config['predictions_output']}")
         else:
-            print("\n Нет данных для сохранения")
+            print("\nНет данных для сохранения")
 
     print("\n" + "="*60)
-    print(" РАБОТА ЗАВЕРШЕНА")
+    print("РАБОТА ЗАВЕРШЕНА")
     print("="*60)
 
 # ==================================================
@@ -386,10 +405,10 @@ def main():
 # ==================================================
 def plot_results(y_true, predictions, prediction_times, residuals, config):
     """Построение и сохранение графиков результатов"""
-    print("\n Построение и сохранение графиков...")
+    print("\nПостроение и сохранение графиков...")
 
     # Создаем директорию для графиков, если её нет
-    plots_dir = config.get('plots_dir', '/content/plots/')
+    plots_dir = config.get('plots_dir', os.path.join(WORK_DIR, 'plots'))
     os.makedirs(plots_dir, exist_ok=True)
 
     # Список для хранения имен сохраненных файлов
@@ -409,7 +428,7 @@ def plot_results(y_true, predictions, prediction_times, residuals, config):
     filepath1 = os.path.join(plots_dir, '1_predicted_vs_actual.png')
     plt.savefig(filepath1, dpi=300, bbox_inches='tight')
     saved_files.append(filepath1)
-    plt.show()
+    plt.close()
 
     # 2. ГРАФИК: Временной ряд
     plt.figure(figsize=(12, 6))
@@ -424,27 +443,27 @@ def plot_results(y_true, predictions, prediction_times, residuals, config):
     filepath2 = os.path.join(plots_dir, '2_time_series.png')
     plt.savefig(filepath2, dpi=300, bbox_inches='tight')
     saved_files.append(filepath2)
-    plt.show()
+    plt.close()
 
-    # 5. ГРАФИК: Время предсказания по образцам
+    # 3. ГРАФИК: Время предсказания по образцам
     plt.figure(figsize=(12, 6))
     plt.plot(indices, [t*1000 for t in prediction_times], 'g-', marker='s', markersize=3, linewidth=1, alpha=0.7)
     plt.xlabel('Номер образца', fontsize=12)
     plt.ylabel('Время предсказания (мс)', fontsize=12)
     plt.title('Время предсказания для каждого образца', fontsize=14)
     plt.grid(True, alpha=0.3)
-    filepath5 = os.path.join(plots_dir, '5_prediction_time_series.png')
-    plt.savefig(filepath5, dpi=300, bbox_inches='tight')
-    saved_files.append(filepath5)
-    plt.show()
+    filepath3 = os.path.join(plots_dir, '3_prediction_time_series.png')
+    plt.savefig(filepath3, dpi=300, bbox_inches='tight')
+    saved_files.append(filepath3)
+    plt.close()
 
     # Вывод информации о сохраненных файлах
     print("\n" + "="*60)
-    print(" СОХРАНЕННЫЕ ГРАФИКИ:")
+    print("СОХРАНЕННЫЕ ГРАФИКИ:")
     print("="*60)
     for i, filepath in enumerate(saved_files, 1):
         print(f"{i}. {filepath}")
-    print(f"\n Все графики сохранены в директории: {plots_dir}")
+    print(f"\nВсе графики сохранены в директории: {plots_dir}")
     print("="*60)
 
 # ==================================================

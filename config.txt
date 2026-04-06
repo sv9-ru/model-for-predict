@@ -2,15 +2,15 @@
 # ==================================================
 
 # Пути к файлам
-model_path = /content/SVR_MFR_dataset1 (1).pkl          # Путь к модели
-dataset_path = /content/dataset1_full.xlsx              # Путь к датасету
+model_path = /saved-models/SVR_MFR_dataset1.pkl          # Путь к модели
+dataset_path = /Data_flometer.xlsx              # Путь к датасету
 
 # Настройки данных
-MFR_obs_col = 5        # Номер колонки с MFR наблюдениями
-DD_col = 7             # Номер колонки с DD
-MFR_err_col = 8        # Номер колонки с MFR ошибкой
-DD_err_col = 10        # Номер колонки с DD ошибкой
-row_start = 3          # Строка начала данных (пропуск заголовков)
+MFR_obs_col = 1        # Номер колонки с MFR наблюдениями
+DD_col = 2             # Номер колонки с DD
+MFR_err_col = 12        # Номер колонки с MFR ошибкой
+DD_err_col = 13        # Номер колонки с DD ошибкой
+row_start = 1          # Строка начала данных (пропуск заголовков)
 
 # Режимы предсказания
 prediction_mode = dataset    # dataset - из датасета, manual - ручной ввод
@@ -28,9 +28,9 @@ max_display_samples = 10     # Максимум образцов для отоб
 
 # Сохранение результатов
 save_predictions = True                     # Сохранять предсказания в CSV
-predictions_output = /content/predictions_results.csv   # Путь для сохранения
+predictions_output = /predictions_results.csv   # Путь для сохранения
 save_plots = True                           # Сохранять графики
-plots_dir = /content/plots/                 # Директория для графиков
+plots_dir = /plots/                 # Директория для графиков
 
 # ==================================================
 # ИНСТРУКЦИЯ:
