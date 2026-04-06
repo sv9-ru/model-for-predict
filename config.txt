@@ -1,44 +1,28 @@
-# КОНФИГУРАЦИОННЫЙ ФАЙЛ ДЛЯ МОДЕЛИ ПРЕДСКАЗАНИЯ
-# ==================================================
+# ===== КОНФИГУРАЦИЯ ДЛЯ СКРИПТА ПРЕДСКАЗАНИЯ =====
 
-# Пути к файлам
-model_path = /saved-models/SVR_MFR_dataset1.pkl          # Путь к модели
-dataset_path = /Data_flometer.xlsx              # Путь к датасету
+# ----- ПУТИ К ФАЙЛАМ -----
+MODEL_PATH = '/content/SVR_MFR_dataset1 (2).pkl'
+DATA_PATH = '/content/dataset.xlsx'
+OUTPUT_CSV = './predictions_results.csv'
 
-# Настройки данных
-MFR_obs_col = 1        # Номер колонки с MFR наблюдениями
-DD_col = 2             # Номер колонки с DD
-MFR_err_col = 12        # Номер колонки с MFR ошибкой
-DD_err_col = 13        # Номер колонки с DD ошибкой
-row_start = 1          # Строка начала данных (пропуск заголовков)
+# ----- НАСТРОЙКИ ДАННЫХ -----
+ROW_START = 1                    # С какой строки читать данные
+MFR_OBS_COL = 1                  # Столбец MFR_obs
+DD_COL = 2                       # Столбец DD
+MFR_ERR_COL = 12                 # Столбец с ошибкой MFR
+DD_ERR_COL = 13                  # Столбец с ошибкой DD
 
-# Режимы предсказания
-prediction_mode = dataset    # dataset - из датасета, manual - ручной ввод
-target_metric = MFR          # MFR или DD (что предсказывать)
+# ----- ЧТО ПРЕДСКАЗЫВАЕМ? -----
+# Варианты: 'MFR' или 'DD'
+TARGET = 'MFR'
 
-# Временные настройки
-prediction_interval = 0      # 0 - мгновенно, 1 - 1 секунда
+# ----- КАКИЕ ПРИЗНАКИ ИСПОЛЬЗОВАТЬ? -----
+# Номера столбцов через запятую
+FEATURES = [1, 2]                # [MFR_obs, DD]
 
-# Обработка данных
-normalize_data = True        # True - нормализовать, False - не нормализовать
+# ----- РИСОВАТЬ ГРАФИКИ? -----
+# True - рисовать, False - не рисовать
+DRAW_PLOTS = True
 
-# Отображение
-show_progress = True         # Показывать прогресс
-max_display_samples = 10     # Максимум образцов для отображения
-
-# Сохранение результатов
-save_predictions = True                     # Сохранять предсказания в CSV
-predictions_output = /predictions_results.csv   # Путь для сохранения
-save_plots = True                           # Сохранять графики
-plots_dir = /plots/                 # Директория для графиков
-
-# ==================================================
-# ИНСТРУКЦИЯ:
-# ==================================================
-# • Для мгновенных предсказаний: prediction_interval = 0
-# • Для задержки 1 сек: prediction_interval = 1
-# • Для теста на датасете: prediction_mode = dataset
-# • Для ручного ввода: prediction_mode = manual
-# • Для MFR: target_metric = MFR
-# • Для DD: target_metric = DD
-# ==================================================
+# ----- ПОКАЗЫВАТЬ ПОДРОБНО? -----
+VERBOSE = True
