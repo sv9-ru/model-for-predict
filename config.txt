@@ -1,8 +1,8 @@
 # ===== КОНФИГУРАЦИЯ ДЛЯ СКРИПТА ПРЕДСКАЗАНИЯ =====
 
 # ----- ПУТИ К ФАЙЛАМ -----
-MODEL_PATH = '/content/SVR_MFR_dataset1 (2).pkl'
-DATA_PATH = '/content/dataset.xlsx'
+MODEL_PATH = '/content/LinearTreeRegressor_base_MFR_err.pkl'
+DATA_PATH = '/content/dataset1.xlsx'
 OUTPUT_CSV = './predictions_results.csv'
 
 # ----- НАСТРОЙКИ ДАННЫХ -----
@@ -20,9 +20,16 @@ TARGET = 'MFR'
 # Номера столбцов через запятую
 FEATURES = [1, 2]                # [MFR_obs, DD]
 
+# ----- НОРМАЛИЗАЦИЯ -----
+# True - делать нормализацию, False - пропустить нормализацию
+USE_NORMALIZATION = False
+
 # ----- РИСОВАТЬ ГРАФИКИ? -----
 # True - рисовать, False - не рисовать
-DRAW_PLOTS = True
+DRAW_PLOTS = False
 
 # ----- ПОКАЗЫВАТЬ ПОДРОБНО? -----
 VERBOSE = True
+
+# ----- НАСТРОЙКИ МНОГОКРАТНОГО ЗАПУСКА -----
+NUM_RUNS = 10                    # Количество запусков predict_script.py
