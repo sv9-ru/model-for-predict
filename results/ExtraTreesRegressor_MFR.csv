@@ -1,0 +1,2 @@
+,CV_MAE,CV_STD,CV_Stability,Train_MAE,Train_RMSE,max_depth,min_samples_leaf,min_samples_split,n_estimators
+MFR,3.3217,0.7427,0.2372,2.6846,3.7812,3.0,2.0,5.0,100.0
