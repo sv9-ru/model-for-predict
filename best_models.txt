@@ -1,41 +1,37 @@
 Лучшая модель для MFR:
-Model: GradientBoostingRegressor
-Dataset: dataset1
-MAE: 0.7364
-RMSE: 1.042
-Overfit_Ratio: 1.881512537819904
-CV_Stability: 0.3235280151557353
-Time_predict: 0.0004611015319824219
+Model    : SVR
+Dataset  : dataset1
+MAE      : 0.76620
+Overfit_Ratio : 0.9824 (отклонение от 1: 0.0176)
+RMSE     : 1.00520
+Time_predict : 0.0006
 
-Все модели:
-                    Model       Dataset Target    MAE   RMSE  Overfit_Ratio  CV_Stability  Time_predict
-GradientBoostingRegressor      dataset1    MFR 0.7364 1.0420       1.881513      0.323528      0.000461
-      LinearTreeRegressor      dataset1    MFR 0.8460 1.1594       1.231434      0.438830      0.001429
-                      SVR      dataset1    MFR 1.2225 1.7523       1.028014      0.465004      0.000575
-                 SVR_poly dataset1_poly    MFR 1.4371 2.0783       1.027252      0.265889      0.000366
-                      SVR dataset1_poly    MFR 1.4371 2.0783       1.027252      0.265889      0.000635
-    RandomForestRegressor      dataset1    MFR 2.6325 3.5692       1.470505      0.264476      0.008124
-      ExtraTreesRegressor      dataset1    MFR 3.1445 4.5727       1.171314      0.237248      0.008953
+Все модели (отсортированы по MAE -> близость Overfit к 1 -> RMSE):
+                    Model       Dataset Target     MAE    RMSE  Overfit_Ratio  Time_predict
+                      SVR      dataset1    MFR 0.76620 1.00520        0.98238       0.00055
+                 SVR_poly dataset1_poly    MFR 0.90480 1.33490        1.10079       0.00037
+      LinearTreeRegressor      dataset1    MFR 1.05790 1.26830        1.19844       0.00055
+GradientBoostingRegressor      dataset1    MFR 1.18300 1.71470        3.11070       0.00045
+      ExtraTreesRegressor      dataset1    MFR 1.55770 2.17960        1.43990       0.00842
+    RandomForestRegressor      dataset1    MFR 1.85650 2.78530        1.62693       0.00851
 
-============================================================
+================================================================================
 
 Лучшая модель для DD:
-Model: SVR
-Dataset: dataset1
-MAE: 0.5589
-RMSE: 0.8966
-Overfit_Ratio: 1.010026713223968
-CV_Stability: 0.3920744377771075
-Time_predict: 0.0004737377166748047
+Model    : GradientBoostingRegressor
+Dataset  : dataset1
+MAE      : 1.39740
+Overfit_Ratio : 5.1937 (отклонение от 1: 4.1937)
+RMSE     : 2.07810
+Time_predict : 0.0005
 
-Все модели:
-                    Model       Dataset Target    MAE   RMSE  Overfit_Ratio  CV_Stability  Time_predict
-                      SVR      dataset1     DD 0.5589 0.8966       1.010027      0.392074      0.000474
-                 SVR_poly dataset1_poly     DD 0.6557 1.1379       1.012124      0.397455      0.000293
-                      SVR dataset1_poly     DD 0.6557 1.1379       1.012124      0.397455      0.000490
-      LinearTreeRegressor      dataset1     DD 0.6773 1.4108       2.200867      0.488653      0.002348
-GradientBoostingRegressor      dataset1     DD 1.0247 1.7155       4.884474      0.336940      0.000684
-    RandomForestRegressor      dataset1     DD 1.4679 2.4107       1.907942      0.339191      0.028866
-      ExtraTreesRegressor      dataset1     DD 1.8584 2.8979       1.468032      0.207379      0.048625
+Все модели (отсортированы по MAE -> близость Overfit к 1 -> RMSE):
+                    Model       Dataset Target     MAE    RMSE  Overfit_Ratio  Time_predict
+GradientBoostingRegressor      dataset1     DD 1.39740 2.07810        5.19373       0.00047
+                      SVR      dataset1     DD 1.44650 2.44810        1.30305       0.00034
+      ExtraTreesRegressor      dataset1     DD 1.44840 1.86440        2.08915       0.00820
+                 SVR_poly dataset1_poly     DD 1.56800 2.58750        1.56767       0.00335
+    RandomForestRegressor      dataset1     DD 1.90440 2.48210        1.65376       0.00785
+      LinearTreeRegressor      dataset1     DD 2.10400 3.25910        1.66092       0.00060
 
-============================================================
+================================================================================
