@@ -5,16 +5,26 @@ import matplotlib.pyplot as plt
 from pathlib import Path
 import sys
 import shutil
+import os
 
 # Загрузка конфигурации
 with open('config.txt', 'r') as f:
     exec(f.read())
+
+# Определяем директорию для сохранения результатов
+output_dir = '/'.join(OUTPUT_CSV.split('/')[:-1])  # извлекаем './results_predict'
+if not output_dir:
+    output_dir = '.'  # если директория не указана, используем текущую
+
+# Создаем директорию, если её нет
+os.makedirs(output_dir, exist_ok=True)
 
 print("="*60)
 print("МНОГОКРАТНЫЙ ЗАПУСК ПРЕДСКАЗАНИЙ")
 print("="*60)
 print(f"Количество запусков: {NUM_RUNS}")
 print(f"Нормализация: {'Включена' if USE_NORMALIZATION else 'Выключена'}")
+print(f"Директория результатов: {output_dir}")
 print("="*60)
 
 # Хранилище для времени всех запусков
@@ -122,8 +132,23 @@ for i, times in enumerate(aligned_times[:NUM_RUNS]):
 # Настройки графика
 plt.xlabel('Номер измерения', fontsize=14, fontweight='bold')
 plt.ylabel('Время предсказания (мс)', fontsize=14, fontweight='bold')
-plt.title(f'Сравнение времени выполнения предсказаний (нормализация: {"ON" if USE_NORMALIZATION else "OFF"})',
+
+# Извлекаем название модели из MODEL_PATH (убираем ./saved_models/ и .pkl)
+model_path = globals().get('MODEL_PATH', 'Unknown_model.pkl')
+# Берем только имя файла без расширения и пути
+model_name = Path(model_path).stem  # убирает расширение .pkl
+# Если есть путь, то берем только имя файла
+if '/' in model_name:
+    model_name = model_name.split('/')[-1]
+print(f"Имя модели: {model_name}")
+
+# Извлекаем название таргета
+target_name = globals().get('TARGET', 'Unknown')
+
+# Формируем заголовок с названием модели и таргета
+plt.title(f'Сравнение времени выполнения предсказаний\nМодель: {model_name}',
           fontsize=16, fontweight='bold')
+
 plt.legend(fontsize=10, loc='best')
 plt.grid(True, linestyle='--', alpha=0.6)
 
@@ -135,45 +160,24 @@ else:
     plt.xticks(x, rotation=45)
 
 plt.tight_layout()
-plt.savefig('./comparison_times.png', dpi=300, bbox_inches='tight')
+
+# Сохраняем график в ту же директорию
+plot_path = f"{output_dir}/comparison_times.png"
+plt.savefig(plot_path, dpi=300, bbox_inches='tight')
 plt.show()
 plt.close()
 
-print("✓ График сохранен: comparison_times.png")
+print(f"✓ График сохранен: {plot_path}")
 
-# СОХРАНЯЕМ ВСЕ ДАННЫЕ В CSV
+# СОХРАНЯЕМ ВСЕ ДАННЫЕ В CSV (в ту же директорию)
 comparison_df = pd.DataFrame()
 for i, times in enumerate(aligned_times):
     comparison_df[f'Run_{i+1}_time_ms'] = times
 
 comparison_df.insert(0, 'measurement_number', x)
-comparison_df.to_csv('./all_runs_comparison.csv', index=False)
-print(f"✓ Данные сохранены в all_runs_comparison.csv")
-
-# СТАТИСТИКА
-print("\n" + "="*60)
-print("СТАТИСТИКА ПО ЗАПУСКАМ")
-print("="*60)
-
-stats_data = []
-for i, times in enumerate(aligned_times[:successful_runs]):
-    valid_times = times[~np.isnan(times)]
-    stats_data.append({
-        'Run': i+1,
-        'Count': len(valid_times),
-        'Mean_ms': np.mean(valid_times),
-        'Std_ms': np.std(valid_times),
-        'Min_ms': np.min(valid_times),
-        'Max_ms': np.max(valid_times),
-        'Median_ms': np.median(valid_times),
-        'P95_ms': np.percentile(valid_times, 95),
-        'P99_ms': np.percentile(valid_times, 99)
-    })
-
-stats_df = pd.DataFrame(stats_data)
-print(stats_df.to_string(index=False))
-stats_df.to_csv('./runs_statistics.csv', index=False)
-print("\n✓ Статистика сохранена в runs_statistics.csv")
+csv_path = f"{output_dir}/all_runs_comparison.csv"
+comparison_df.to_csv(csv_path, index=False)
+print(f"✓ Данные сохранены в {csv_path}")
 
 print("\n" + "="*60)
 print("ГОТОВО!")

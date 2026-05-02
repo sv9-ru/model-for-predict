@@ -1,35 +1,91 @@
-# ===== КОНФИГУРАЦИЯ ДЛЯ СКРИПТА ПРЕДСКАЗАНИЯ =====
+PREDICT_INTERVAL_MS = 1000   # интервал между предсказаниями в миллисекундах
+STREAM_OUTPUT_CSV = './results_predict/interval_predictions.csv'
 
-# ----- ПУТИ К ФАЙЛАМ -----
-MODEL_PATH = '/content/LinearTreeRegressor_base_MFR_err.pkl'
-DATA_PATH = '/content/dataset1.xlsx'
-OUTPUT_CSV = './predictions_results.csv'
+MODEL_PATH = './saved_models/ExtraTreesRegressor_dataset1_DD.pkl'
+DATA_PATH = './dataset.xlsx'
+OUTPUT_CSV = './results_predict/predictions_results.csv'
 
-# ----- НАСТРОЙКИ ДАННЫХ -----
-ROW_START = 1                    # С какой строки читать данные
-MFR_OBS_COL = 1                  # Столбец MFR_obs
-DD_COL = 2                       # Столбец DD
-MFR_ERR_COL = 12                 # Столбец с ошибкой MFR
-DD_ERR_COL = 13                  # Столбец с ошибкой DD
+MODELS_DIR = './saved_models'
 
-# ----- ЧТО ПРЕДСКАЗЫВАЕМ? -----
-# Варианты: 'MFR' или 'DD'
-TARGET = 'MFR'
+OUTPUT_PREDICTIONS_CSV = './results_predict/models_predictions_comparison.csv'
+OUTPUT_METRICS_CSV = './results_predict/models_metrics_comparison.csv'
+OUTPUT_TIME_PLOT = './results_predict/models_time_comparison.png'
 
-# ----- КАКИЕ ПРИЗНАКИ ИСПОЛЬЗОВАТЬ? -----
-# Номера столбцов через запятую
-FEATURES = [1, 2]                # [MFR_obs, DD]
+ROW_START = 1
 
-# ----- НОРМАЛИЗАЦИЯ -----
-# True - делать нормализацию, False - пропустить нормализацию
+# По какому таргету сравнивать модели: 'MFR' или 'DD'
+TARGET = 'DD'
+
+MFR_OBS_COL = 1
+DD_COL = 2
+
+FEATURES = [1, 2]
+
+MFR_ERR_COL = 12
+DD_ERR_COL = 13
+
+HAS_TARGET = True   # True - есть реальные значения target, False - только предсказание без метрик
+X_SCALER_PATH = './saved_scalers/X_scaler_ds1.pkl'
+Y_SCALER_PATH = './saved_scalers/y_scaler_ds1_MFR.pkl'
+
+DRAW_PLOTS = True
+VERBOSE = True
+NUM_RUNS = 5
+
 USE_NORMALIZATION = False
 
-# ----- РИСОВАТЬ ГРАФИКИ? -----
-# True - рисовать, False - не рисовать
-DRAW_PLOTS = False
 
-# ----- ПОКАЗЫВАТЬ ПОДРОБНО? -----
+NORMALIZATION_CONFIG = {
+    'SVR_dataset1_MFR': {
+        'use_normalization': True,
+        'x_scaler_path': './saved_scalers/X_scaler_ds1.pkl',
+        'y_scaler_path': './saved_scalers/y_scaler_ds1_MFR.pkl'
+    },
+
+    'SVR_dataset1_DD': {
+        'use_normalization': True,
+        'x_scaler_path': './saved_scalers/X_scaler_ds1.pkl',
+        'y_scaler_path': './saved_scalers/y_scaler_ds1_DD.pkl'
+    },
+
+    'SVR_dataset1_poly_MFR': {
+        'use_normalization': True,
+        'x_scaler_path': './saved_scalers/X_scaler_poly.pkl',
+        'y_scaler_path': './saved_scalers/y_scaler_poly_MFR.pkl',
+        'use_poly': True,
+        'poly_degree': 5
+    },
+
+    'SVR_dataset1_poly_DD': {
+        'use_normalization': True,
+        'x_scaler_path': './saved_scalers/X_scaler_poly.pkl',
+        'y_scaler_path': './saved_scalers/y_scaler_poly_DD.pkl',
+        'use_poly': True,
+        'poly_degree': 5
+    },
+
+    'GradientBoostingRegressor': {
+        'use_normalization': False,
+        'use_poly': False
+    },
+
+    'RandomForestRegressor': {
+        'use_normalization': False,
+        'use_poly': False
+    },
+
+    'ExtraTreesRegressor': {
+        'use_normalization': False,
+        'use_poly': False
+    },
+
+    'LinearTreeRegressor': {
+        'use_normalization': False,
+        'use_poly': False
+    }
+}
+
+DEFAULT_USE_NORMALIZATION = False
+DEFAULT_USE_POLY = False
+
 VERBOSE = True
-
-# ----- НАСТРОЙКИ МНОГОКРАТНОГО ЗАПУСКА -----
-NUM_RUNS = 10                    # Количество запусков predict_script.py
