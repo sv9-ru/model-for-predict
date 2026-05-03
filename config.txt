@@ -1,20 +1,20 @@
 PREDICT_INTERVAL_MS = 1000   # интервал между предсказаниями в миллисекундах
-STREAM_OUTPUT_CSV = './results_predict_dd/interval_predictions.csv'
+STREAM_OUTPUT_CSV = './results_predict_mfr/interval_predictions.csv'
 
-MODEL_PATH = './saved_models/SVR_dataset1_DD.pkl'
+MODEL_PATH = './saved_models/SVR_dataset1_MFR.pkl'
 DATA_PATH = './dataset.xlsx'
-OUTPUT_CSV = './results_predict_dd/predictions_results.csv'
+OUTPUT_CSV = './results_predict_mfr/predictions_results.csv'
 
 MODELS_DIR = './saved_models'
 
-OUTPUT_PREDICTIONS_CSV = './results_predict_dd/models_predictions_comparison.csv'
-OUTPUT_METRICS_CSV = './results_predict_dd/models_metrics_comparison.csv'
-OUTPUT_TIME_PLOT = './results_predict_dd/models_time_comparison.png'
+OUTPUT_PREDICTIONS_CSV = './results_predict_mfr/models_predictions_comparison.csv'
+OUTPUT_METRICS_CSV = './results_predict_mfr/models_metrics_comparison.csv'
+OUTPUT_TIME_PLOT = './results_predict_mfr/models_time_comparison.png'
 
 ROW_START = 1
 
 # По какому таргету сравнивать модели: 'MFR' или 'DD'
-TARGET = 'DD'
+TARGET = 'MFR'
 
 MFR_OBS_COL = 1
 DD_COL = 2
@@ -26,7 +26,7 @@ DD_ERR_COL = 13
 
 HAS_TARGET = True   # True - есть реальные значения target, False - только предсказание без метрик
 X_SCALER_PATH = './saved_scalers/X_scaler_ds1.pkl'
-Y_SCALER_PATH = './saved_scalers/y_scaler_ds1_DD.pkl'
+Y_SCALER_PATH = './saved_scalers/y_scaler_ds1_MFR.pkl'
 
 DRAW_PLOTS = True
 VERBOSE = True
