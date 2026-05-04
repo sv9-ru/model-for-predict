@@ -1,0 +1,141 @@
+
+# ================== ОСНОВНОЙ РЕЖИМ ТЕСТИРОВАНИЯ ==================
+
+PREDICT_INTERVAL_MS = 20
+REPEAT_DATASET = 5
+WARMUP_RUNS = 5
+VERBOSE_EVERY = 40
+
+TARGET_ORDER = ["MFR", "DD"]
+
+DATA_PATH = "./dataset.xlsx"
+ROW_START = 1
+ROW_END = None
+
+BASE_RESULTS_DIR = "./results_realtime"
+
+PLOT_TIME_COLUMN = "cycle_ms"
+SAVE_PLOTS = True
+SAVE_FULL_DEBUG_CSV = False
+
+
+# ================== МОДЕЛИ ДЛЯ ПОСЛЕДОВАТЕЛЬНОГО ТЕСТИРОВАНИЯ ==================
+
+MODEL_PATHS = {
+    "MFR": "./saved_models/SVR_dataset1_MFR.pkl",
+    "DD": "./saved_models/SVR_dataset1_DD.pkl"
+}
+
+
+# ================== ПРИЗНАКИ ==================
+
+FEATURES = [1, 2]
+
+MFR_OBS_COL = 1
+DD_COL = 2
+
+MFR_ERR_COL = 12
+DD_ERR_COL = 13
+
+HAS_TARGET = True
+
+
+# ================== НАСТРОЙКИ ПО УМОЛЧАНИЮ ==================
+
+DEFAULT_USE_NORMALIZATION = False
+DEFAULT_USE_POLY = False
+
+
+# ================== НАСТРОЙКИ НОРМАЛИЗАЦИИ И ПОЛИНОМОВ ==================
+
+NORMALIZATION_CONFIG = {
+    "SVR_dataset1_MFR": {
+        "use_normalization": True,
+        "x_scaler_path": "./saved_scalers/X_scaler_ds1.pkl",
+        "y_scaler_path": "./saved_scalers/y_scaler_ds1_MFR.pkl",
+        "use_poly": False
+    },
+
+    "SVR_dataset1_DD": {
+        "use_normalization": True,
+        "x_scaler_path": "./saved_scalers/X_scaler_ds1.pkl",
+        "y_scaler_path": "./saved_scalers/y_scaler_ds1_DD.pkl",
+        "use_poly": False
+    },
+
+    "SVR_dataset1_poly_MFR": {
+        "use_normalization": True,
+        "x_scaler_path": "./saved_scalers/X_scaler_poly.pkl",
+        "y_scaler_path": "./saved_scalers/y_scaler_poly_MFR.pkl",
+        "use_poly": True,
+        "poly_degree": 5
+    },
+
+    "SVR_dataset1_poly_DD": {
+        "use_normalization": True,
+        "x_scaler_path": "./saved_scalers/X_scaler_poly.pkl",
+        "y_scaler_path": "./saved_scalers/y_scaler_poly_DD.pkl",
+        "use_poly": True,
+        "poly_degree": 5
+    },
+
+    "ExtraTreesRegressor_dataset1_MFR": {
+        "use_normalization": False,
+        "use_poly": False
+    },
+
+    "ExtraTreesRegressor_dataset1_DD": {
+        "use_normalization": False,
+        "use_poly": False
+    },
+
+    "RandomForestRegressor_dataset1_MFR": {
+        "use_normalization": False,
+        "use_poly": False
+    },
+
+    "RandomForestRegressor_dataset1_DD": {
+        "use_normalization": False,
+        "use_poly": False
+    },
+
+    "GradientBoostingRegressor_dataset1_MFR": {
+        "use_normalization": False,
+        "use_poly": False
+    },
+
+    "GradientBoostingRegressor_dataset1_DD": {
+        "use_normalization": False,
+        "use_poly": False
+    },
+
+    "LinearTreeRegressor_dataset1_MFR": {
+        "use_normalization": False,
+        "use_poly": False
+    },
+
+    "LinearTreeRegressor_dataset1_DD": {
+        "use_normalization": False,
+        "use_poly": False
+    },
+
+    "ExtraTreesRegressor": {
+        "use_normalization": False,
+        "use_poly": False
+    },
+
+    "RandomForestRegressor": {
+        "use_normalization": False,
+        "use_poly": False
+    },
+
+    "GradientBoostingRegressor": {
+        "use_normalization": False,
+        "use_poly": False
+    },
+
+    "LinearTreeRegressor": {
+        "use_normalization": False,
+        "use_poly": False
+    }
+}

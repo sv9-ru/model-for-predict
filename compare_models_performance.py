@@ -1,3 +1,4 @@
+
 import os
 import time
 import joblib
@@ -7,12 +8,14 @@ import matplotlib.pyplot as plt
 
 from pathlib import Path
 from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
-from sklearn.preprocessing import PolynomialFeatures
 
 
+# ================= CONFIG =================
 with open('config.txt', 'r') as f:
     exec(f.read())
 
+
+# ================= UTILS =================
 
 def get_model_name(path):
     return Path(path).stem
@@ -20,255 +23,263 @@ def get_model_name(path):
 
 def find_model_files(models_dir):
     model_files = []
-
     for root, _, files in os.walk(models_dir):
         for file in files:
-            if file.endswith(".pkl") or file.endswith(".joblib"):
+            if file.endswith((".pkl", ".joblib")):
                 model_files.append(os.path.join(root, file))
-
     return sorted(model_files)
 
 
 def model_matches_target(model_name, target):
     name = model_name.upper()
-    target = target.upper()
 
     if target == "MFR":
         return "MFR" in name and "DD" not in name
-
     if target == "DD":
         return "DD" in name
 
-    raise ValueError("TARGET должен быть 'MFR' или 'DD'")
+    return False
 
 
 def get_model_settings(model_name):
-    # сначала точные совпадения
     if model_name in NORMALIZATION_CONFIG:
         return NORMALIZATION_CONFIG[model_name]
 
-    # потом частичные совпадения
     for key, value in NORMALIZATION_CONFIG.items():
         if key.lower() in model_name.lower():
             return value
 
     return {
-        "use_normalization": DEFAULT_USE_NORMALIZATION,
-        "use_poly": DEFAULT_USE_POLY
+        "use_normalization": DEFAULT_USE_NORMALIZATION
     }
 
 
-def safe_predict_value(raw_pred):
-    arr = np.asarray(raw_pred).reshape(-1)
-    return arr[0]
+def predict_one(x, model, x_scaler, y_scaler, use_norm):
+    compute_start = time.perf_counter()
 
-
-print("=" * 70)
-print("СРАВНЕНИЕ ПРОИЗВОДИТЕЛЬНОСТИ МОДЕЛЕЙ")
-print("=" * 70)
-
-dataset = pd.read_excel(DATA_PATH)
-
-X = dataset.iloc[ROW_START:, FEATURES].values.astype(float)
-
-mfr_true = dataset.iloc[ROW_START:, [MFR_ERR_COL]].values.astype(float).flatten()
-dd_true = dataset.iloc[ROW_START:, [DD_ERR_COL]].values.astype(float).flatten()
-
-if TARGET.upper() == "MFR":
-    y_true = mfr_true
-elif TARGET.upper() == "DD":
-    y_true = dd_true
-else:
-    raise ValueError("TARGET должен быть 'MFR' или 'DD'")
-
-all_models = find_model_files(MODELS_DIR)
-
-model_files = [
-    path for path in all_models
-    if model_matches_target(get_model_name(path), TARGET)
-]
-
-if len(model_files) == 0:
-    raise FileNotFoundError(f"Не найдено моделей для TARGET={TARGET} в {MODELS_DIR}")
-
-print(f"Dataset: {DATA_PATH}")
-print(f"Строк для сравнения: {len(X)}")
-print(f"TARGET для сравнения: {TARGET}")
-print(f"Найдено моделей для TARGET={TARGET}: {len(model_files)}")
-
-for path in model_files:
-    print(f" - {get_model_name(path)}")
-
-
-prediction_table = pd.DataFrame({
-    "MFRerr": mfr_true,
-    "DDerr": dd_true
-})
-
-metrics_rows = []
-time_data = {}
-
-# Список маркеров для разных линий
-markers = ['o', 's', '^', 'D', 'v', '<', '>', 'p', '*', 'h', '+', 'x', '|', '_', 'd']
-
-for idx, model_path in enumerate(model_files):
-    model_name = get_model_name(model_path)
-
-    print("\n" + "=" * 60)
-    print(f"Модель: {model_name}")
-    print("=" * 60)
-
-    model = joblib.load(model_path)
-    settings = get_model_settings(model_name)
-
-    use_poly = settings.get("use_poly", DEFAULT_USE_POLY)
-    poly_degree = settings.get("poly_degree", 5)
-
-    if use_poly or "poly" in model_name.lower():
-        poly = PolynomialFeatures(degree=poly_degree, include_bias=False)
-        X_model = poly.fit_transform(X)
-        print(f"PolynomialFeatures: ON, degree={poly_degree}")
-    else:
-        X_model = X.copy()
-        print("PolynomialFeatures: OFF")
-
-    use_norm = settings.get("use_normalization", DEFAULT_USE_NORMALIZATION)
+    x = np.array(x).reshape(1, -1)
 
     if use_norm:
-        X_scaler = joblib.load(settings["x_scaler_path"])
-        y_scaler = joblib.load(settings["y_scaler_path"])
-        X_input = X_scaler.transform(X_model)
-        print("Нормализация: ON")
+        x_input = x_scaler.transform(x)
     else:
-        y_scaler = None
-        X_input = X_model
-        print("Нормализация: OFF")
+        x_input = x
 
-    predictions = []
-    times_ms = []
+    inf_start = time.perf_counter()
+    raw = model.predict(x_input)
+    inference_ms = (time.perf_counter() - inf_start) * 1000
 
-    for i in range(len(X_input)):
-        x_one = X_input[i].reshape(1, -1)
+    if use_norm:
+        pred = y_scaler.inverse_transform(np.array(raw).reshape(-1, 1))[0][0]
+    else:
+        pred = float(raw[0])
 
-        start = time.perf_counter()
-        raw_pred = model.predict(x_one)
-        elapsed_ms = (time.perf_counter() - start) * 1000.0
+    compute_ms = (time.perf_counter() - compute_start) * 1000
+
+    return pred, inference_ms, compute_ms
+
+
+def stats(arr):
+    arr = np.array(arr)
+    return {
+        "mean": np.mean(arr),
+        "p95": np.percentile(arr, 95),
+        "p99": np.percentile(arr, 99),
+        "max": np.max(arr)
+    }
+
+
+# ================= MAIN FUNCTION =================
+
+def run_target(target):
+
+    print(f"\n{'='*90}")
+    print(f"TARGET = {target}")
+    print(f"{'='*90}")
+
+    # ===== DATA =====
+    df = pd.read_excel(DATA_PATH)
+
+    X = df.iloc[ROW_START:, FEATURES].values.astype(float)
+
+    mfr_true = df.iloc[ROW_START:, [MFR_ERR_COL]].values.flatten()
+    dd_true = df.iloc[ROW_START:, [DD_ERR_COL]].values.flatten()
+
+    y_true = mfr_true if target == "MFR" else dd_true
+
+    # ===== MODELS =====
+    all_models = find_model_files(MODELS_DIR)
+
+    model_files = [
+        m for m in all_models
+        if model_matches_target(get_model_name(m), target)
+    ]
+
+    if not model_files:
+        print("❌ Нет моделей")
+        return None
+
+    print(f"Найдено моделей: {len(model_files)}")
+
+    # ===== OUTPUT DIR =====
+    target_dir = os.path.join(BASE_RESULTS_DIR, target)
+    os.makedirs(target_dir, exist_ok=True)
+
+    results_summary = []
+    time_series = {}
+
+    # ===== BENCHMARK =====
+    for model_path in model_files:
+        model_name = get_model_name(model_path)
+
+        print(f"\n→ {model_name}")
+
+        model = joblib.load(model_path)
+        cfg = get_model_settings(model_name)
+
+        use_norm = cfg.get("use_normalization", False)
 
         if use_norm:
-            pred = y_scaler.inverse_transform(
-                np.asarray(raw_pred).reshape(-1, 1)
-            )[0][0]
+            x_scaler = joblib.load(cfg["x_scaler_path"])
+            y_scaler = joblib.load(cfg["y_scaler_path"])
         else:
-            pred = safe_predict_value(raw_pred)
+            x_scaler = None
+            y_scaler = None
 
-        predictions.append(pred)
-        times_ms.append(elapsed_ms)
+        # ===== WARMUP =====
+        for _ in range(10):
+            predict_one(X[0], model, x_scaler, y_scaler, use_norm)
 
-    predictions = np.asarray(predictions)
-    times_ms = np.asarray(times_ms)
+        predictions = []
+        cycle_times = []
+        deadline_miss = 0
 
-    prediction_table[f"Предсказанное({model_name})"] = predictions
-    prediction_table[f"Время_мс({model_name})"] = times_ms
+        period_s = PREDICT_INTERVAL_MS / 1000
+        start_time = time.perf_counter()
 
-    time_data[model_name] = times_ms
+        for i in range(len(X)):
+            scheduled = start_time + i * period_s
 
-    mse = mean_squared_error(y_true, predictions)
-    rmse = np.sqrt(mse)
-    mae = mean_absolute_error(y_true, predictions)
-    r2 = r2_score(y_true, predictions)
+            now = time.perf_counter()
+            if now < scheduled:
+                time.sleep(scheduled - now)
 
-    metrics_rows.append({
-        "Model": model_name,
-        "Target": TARGET,
-        "MAE": mae,
-        "MSE": mse,
-        "RMSE": rmse,
-        "R2": r2,
-        "Mean_Time_ms": np.mean(times_ms),
-        "Min_Time_ms": np.min(times_ms),
-        "Max_Time_ms": np.max(times_ms),
-        "Std_Time_ms": np.std(times_ms),
-        "Total_Time_ms": np.sum(times_ms)
-    })
+            cycle_start = time.perf_counter()
+
+            pred, _, _ = predict_one(
+                X[i], model, x_scaler, y_scaler, use_norm
+            )
+
+            cycle_ms = (time.perf_counter() - cycle_start) * 1000
+
+            finish = time.perf_counter()
+            if finish > scheduled + period_s:
+                deadline_miss += 1
+
+            predictions.append(pred)
+            cycle_times.append(cycle_ms)
+
+        predictions = np.array(predictions)
+
+        # ===== METRICS =====
+        mse = mean_squared_error(y_true, predictions)
+        rmse = np.sqrt(mse)
+        mae = mean_absolute_error(y_true, predictions)
+        r2 = r2_score(y_true, predictions)
+
+        cycle_stat = stats(cycle_times)
+
+        results_summary.append({
+            "model": model_name,
+            "target": target,
+            "MAE": mae,
+            "RMSE": rmse,
+            "R2": r2,
+            "cycle_mean_ms": cycle_stat["mean"],
+            "cycle_p95_ms": cycle_stat["p95"],
+            "cycle_p99_ms": cycle_stat["p99"],
+            "cycle_max_ms": cycle_stat["max"],
+            "deadline_miss_%": deadline_miss / len(X) * 100,
+            "realtime_ok": cycle_stat["max"] < PREDICT_INTERVAL_MS and deadline_miss == 0
+        })
+
+        time_series[model_name] = cycle_times
+
+    # ===== SAVE TABLE =====
+    df_summary = pd.DataFrame(results_summary)
+    df_summary = df_summary.sort_values(by=["MAE", "cycle_mean_ms"])
+
+    metrics_path = os.path.join(target_dir, f"metrics_{target}.csv")
+    df_summary.to_csv(metrics_path, index=False)
+
+    print("\nRESULT:")
+    print(df_summary)
+
+    # ================= PLOT (FIXED) =================
+    plt.figure(figsize=(15, 7))
+
+    markers = [
+        "o", "s", "^", "D", "v", "<", ">", "p", "*", "h",
+        "X", "P", "8", "d", "|", "_"
+    ]
+
+    # более насыщенные цвета (вместо pastel tab20)
+    colors = plt.cm.viridis(np.linspace(0, 1, len(time_series)))
+
+    for idx, (name, series) in enumerate(time_series.items()):
+        plt.plot(
+            series,
+            label=name,
+
+            # 🔥 усиливаем визуал
+            linewidth=2.2,          # толще линии
+            alpha=1.0,              # без прозрачности
+            color=colors[idx % len(colors)],
+
+            marker=markers[idx % len(markers)],
+            markevery=max(1, len(series)//30),
+            markersize=6,
+        )
+
+    plt.axhline(
+        y=PREDICT_INTERVAL_MS,
+        linestyle="--",
+        linewidth=1.5,
+        color="red",
+        label="deadline"
+    )
+
+    plt.title(f"REAL PERFORMANCE | {target}", fontsize=13, fontweight="bold")
+    plt.xlabel("measurement")
+    plt.ylabel("cycle ms")
+    plt.grid(True, alpha=0.4)
+
+    plt.legend(bbox_to_anchor=(1.02, 1), loc="upper left", fontsize=9)
+    plt.tight_layout()
+
+    plot_path = os.path.join(target_dir, f"time_{target}.png")
+    plt.savefig(plot_path, dpi=300, bbox_inches="tight")
+    plt.close()
+
+    print(f"\nSaved: {metrics_path}")
+    print(f"Graph: {plot_path}")
+
+    return df_summary
 
 
-prediction_table.to_csv(OUTPUT_PREDICTIONS_CSV, index=False)
+# ================= RUN =================
 
-metrics_table = pd.DataFrame(metrics_rows)
-metrics_table = metrics_table.sort_values(
-    by=["MAE", "RMSE", "Mean_Time_ms"],
-    ascending=True
-)
-metrics_table.to_csv(OUTPUT_METRICS_CSV, index=False)
+all_results = []
 
-print("\n" + "=" * 70)
-print("ТАБЛИЦЫ СОХРАНЕНЫ")
-print("=" * 70)
-print(f"Предсказания: {OUTPUT_PREDICTIONS_CSV}")
-print(f"Метрики: {OUTPUT_METRICS_CSV}")
+for target in ["MFR", "DD"]:
+    result = run_target(target)
+    if result is not None:
+        all_results.append(result)
 
-print("\nРейтинг моделей:")
-print(metrics_table.to_string(index=False))
+if all_results:
+    combined = pd.concat(all_results, ignore_index=True)
+    combined_path = os.path.join(BASE_RESULTS_DIR, "combined_metrics.csv")
+    combined.to_csv(combined_path, index=False)
 
-# ПОСТРОЕНИЕ ГРАФИКА С ТОЧКАМИ И ОТСЕЧЕНИЕМ ВЫБРОСОВ
-plt.figure(figsize=(14, 7))
-
-# Собираем все времена для определения пределов с отсечением выбросов
-all_times = []
-for model_name, times_ms in time_data.items():
-    all_times.extend(times_ms)
-
-# Расчет процентилей для отсечения выбросов (отображаем 1-й до 99-й процентиль)
-lower_bound = np.percentile(all_times, 1)
-upper_bound = np.percentile(all_times, 99)
-
-print(f"\nДиапазон отображения (1-99 процентили): {lower_bound:.3f} - {upper_bound:.3f} мс")
-print(f"Выбросы выше {upper_bound:.3f} мс будут обрезаны")
-
-for idx, (model_name, times_ms) in enumerate(time_data.items()):
-    marker = markers[idx % len(markers)]
-
-    # Обрезаем выбросы для отображения (но не для данных)
-    times_clipped = np.clip(times_ms, lower_bound, upper_bound)
-
-    # Рисуем линию с точками
-    plt.plot(times_clipped,
-             marker=marker,
-             markersize=3,
-             markevery=5,  # Ставим точку каждые 5 измерений для читаемости
-             linewidth=1.5,
-             label=f"{model_name} (max: {np.max(times_ms):.2f} мс)",  # Показываем реальный максимум
-             alpha=0.8)
-
-    # Отмечаем выбросы красными точками (опционально)
-    outliers = times_ms > upper_bound
-    if np.any(outliers):
-        outlier_indices = np.where(outliers)[0]
-        outlier_values = times_ms[outliers]
-        # Рисуем выбросы на верхней границе графика
-        plt.scatter(outlier_indices, [upper_bound] * len(outlier_indices),
-                   color='red', s=20, zorder=5, alpha=0.5)
-        print(f"  {model_name}: {np.sum(outliers)} выбросов > {upper_bound:.3f} мс (макс: {np.max(times_ms):.3f} мс)")
-
-plt.title(f"Сравнение времени предсказания моделей | Target: {TARGET}\n(Отображены значения от {lower_bound:.2f} до {upper_bound:.2f} мс, выбросы обрезаны)",
-          fontsize=12)
-plt.xlabel("Номер измерения")
-plt.ylabel("Время предсказания, мс")
-plt.grid(True, linestyle="--", alpha=0.6)
-
-# Устанавливаем пределы графика (с небольшим запасом)
-plt.ylim(lower_bound * 0.9, upper_bound * 1.05)
-
-plt.legend(
-    loc="center left",
-    bbox_to_anchor=(1.02, 0.5),
-    borderaxespad=0,
-    fontsize=9
-)
-
-plt.tight_layout(rect=[0, 0, 0.78, 1])
-plt.savefig(OUTPUT_TIME_PLOT, dpi=300, bbox_inches="tight")
-plt.close()
-
-print(f"\nГрафик сохранён: {OUTPUT_TIME_PLOT}")
-print("\nГОТОВО")
+    print("\n=== COMBINED ===")
+    print(combined)
+    print(f"\nSaved: {combined_path}")

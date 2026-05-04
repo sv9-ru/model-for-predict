@@ -1,2 +1,0 @@
-,CV_MAE,CV_STD,CV_Stability,Train_MAE,Train_RMSE,max_depth,min_samples_leaf,min_samples_split,n_estimators
-DD,1.2096,0.4396,0.3392,0.7694,1.0823,3.0,2.0,5.0,100.0
