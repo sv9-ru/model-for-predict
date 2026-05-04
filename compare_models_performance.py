@@ -215,56 +215,83 @@ def run_target(target):
     print(df_summary)
 
     # ================= PLOT (FIXED) =================
-    plt.figure(figsize=(15, 7))
+    # ================= PLOTS =================
 
     markers = [
         "o", "s", "^", "D", "v", "<", ">", "p", "*", "h",
         "X", "P", "8", "d", "|", "_"
     ]
 
-    # более насыщенные цвета (вместо pastel tab20)
     colors = plt.cm.viridis(np.linspace(0, 1, len(time_series)))
+
+
+    # ================= 1) PURE PERFORMANCE (NO PERIOD) =================
+    plt.figure(figsize=(15, 7))
 
     for idx, (name, series) in enumerate(time_series.items()):
         plt.plot(
             series,
             label=name,
-
-            # 🔥 усиливаем визуал
-            linewidth=2.2,          # толще линии
-            alpha=1.0,              # без прозрачности
+            linewidth=2.2,
+            alpha=1.0,
             color=colors[idx % len(colors)],
-
             marker=markers[idx % len(markers)],
-            markevery=max(1, len(series)//30),
-            markersize=6,
+            markevery=max(1, len(series)//35),
+            markersize=5,
+            markeredgewidth=0.8,
+            markeredgecolor="black"
         )
 
-    plt.axhline(
-        y=PREDICT_INTERVAL_MS,
-        linestyle="--",
-        linewidth=1.5,
-        color="red",
-        label="deadline"
-    )
-
-    plt.title(f"REAL PERFORMANCE | {target}", fontsize=13, fontweight="bold")
+    plt.title(f"MODEL PERFORMANCE (NO DEADLINE) | {target}", fontsize=13, fontweight="bold")
     plt.xlabel("measurement")
-    plt.ylabel("cycle ms")
+    plt.ylabel("cycle time (ms)")
     plt.grid(True, alpha=0.4)
 
     plt.legend(bbox_to_anchor=(1.02, 1), loc="upper left", fontsize=9)
     plt.tight_layout()
 
-    plot_path = os.path.join(target_dir, f"time_{target}.png")
-    plt.savefig(plot_path, dpi=300, bbox_inches="tight")
+    plot_no_period = os.path.join(target_dir, f"time_{target}_NO_PERIOD.png")
+    plt.savefig(plot_no_period, dpi=300, bbox_inches="tight")
     plt.close()
 
-    print(f"\nSaved: {metrics_path}")
-    print(f"Graph: {plot_path}")
 
-    return df_summary
+    # ================= 2) REAL-TIME (WITH PERIOD) =================
+    plt.figure(figsize=(15, 7))
 
+    for idx, (name, series) in enumerate(time_series.items()):
+        plt.plot(
+            series,
+            label=name,
+            linewidth=2.2,
+            alpha=1.0,
+            color=colors[idx % len(colors)],
+            marker=markers[idx % len(markers)],
+            markevery=max(1, len(series)//35),
+            markersize=5,
+            markeredgewidth=0.8,
+            markeredgecolor="black"
+        )
+
+    # deadline line
+    plt.axhline(
+        y=PREDICT_INTERVAL_MS,
+        linestyle="--",
+        linewidth=2,
+        color="red",
+        label="deadline (period)"
+    )
+
+    plt.title(f"REAL-TIME PERFORMANCE (WITH DEADLINE) | {target}", fontsize=13, fontweight="bold")
+    plt.xlabel("measurement")
+    plt.ylabel("cycle time (ms)")
+    plt.grid(True, alpha=0.4)
+
+    plt.legend(bbox_to_anchor=(1.02, 1), loc="upper left", fontsize=9)
+    plt.tight_layout()
+
+    plot_with_period = os.path.join(target_dir, f"time_{target}_WITH_PERIOD.png")
+    plt.savefig(plot_with_period, dpi=300, bbox_inches="tight")
+    plt.close()
 
 # ================= RUN =================
 

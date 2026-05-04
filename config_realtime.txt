@@ -1,9 +1,9 @@
 
 # ================== ОСНОВНОЙ РЕЖИМ ТЕСТИРОВАНИЯ ==================
 
-PREDICT_INTERVAL_MS = 20
-REPEAT_DATASET = 5
-WARMUP_RUNS = 5
+PREDICT_INTERVAL_MS = 100
+REPEAT_DATASET = 10
+WARMUP_RUNS = 60
 VERBOSE_EVERY = 40
 
 TARGET_ORDER = ["MFR", "DD"]

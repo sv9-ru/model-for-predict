@@ -1,4 +1,4 @@
-PREDICT_INTERVAL_MS = 20   # интервал между предсказаниями в миллисекундах
+PREDICT_INTERVAL_MS = 100   # интервал между предсказаниями в миллисекундах
 STREAM_OUTPUT_CSV = './results_predict/interval_predictions.csv'
 BASE_RESULTS_DIR = './results_comparison'
 MODEL_PATH = './saved_models/ExtraTreesRegressor_dataset1_DD.pkl'

@@ -286,7 +286,7 @@ def plot_detail_time(results_df, target, model_label, output_dir):
     if SAVE_PLOTS:
         plt.savefig(plot_path, dpi=300, bbox_inches="tight")
 
-    plt.show()
+    plt.close()
 
     return plot_path
 
@@ -351,7 +351,7 @@ def plot_period_check(results_df, target, model_label, output_dir):
     if SAVE_PLOTS:
         plt.savefig(plot_path, dpi=300, bbox_inches="tight")
 
-    plt.show()
+    plt.close()
 
     return plot_path
 
