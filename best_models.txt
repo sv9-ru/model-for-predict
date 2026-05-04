@@ -4,16 +4,16 @@ Dataset  : dataset1
 MAE      : 0.76620
 Overfit_Ratio : 0.9824 (отклонение от 1: 0.0176)
 RMSE     : 1.00520
-Time_predict : 0.0006
+Time_predict : 0.0005
 
 Все модели (отсортированы по MAE -> близость Overfit к 1 -> RMSE):
                     Model       Dataset Target     MAE    RMSE  Overfit_Ratio  Time_predict
-                      SVR      dataset1    MFR 0.76620 1.00520        0.98238       0.00055
-                 SVR_poly dataset1_poly    MFR 0.90480 1.33490        1.10079       0.00037
-      LinearTreeRegressor      dataset1    MFR 1.05790 1.26830        1.19844       0.00055
-GradientBoostingRegressor      dataset1    MFR 1.18300 1.71470        3.11070       0.00045
-      ExtraTreesRegressor      dataset1    MFR 1.55770 2.17960        1.43990       0.00842
-    RandomForestRegressor      dataset1    MFR 1.85650 2.78530        1.62693       0.00851
+                      SVR      dataset1    MFR 0.76620 1.00520        0.98238       0.00048
+                 SVR_poly dataset1_poly    MFR 0.90480 1.33490        1.10079       0.00047
+      LinearTreeRegressor      dataset1    MFR 1.05790 1.26830        1.19844       0.00074
+GradientBoostingRegressor      dataset1    MFR 1.18300 1.71470        3.11070       0.00049
+      ExtraTreesRegressor      dataset1    MFR 1.55770 2.17960        1.43990       0.01106
+    RandomForestRegressor      dataset1    MFR 1.85650 2.78530        1.62693       0.00895
 
 ================================================================================
 
@@ -27,11 +27,11 @@ Time_predict : 0.0005
 
 Все модели (отсортированы по MAE -> близость Overfit к 1 -> RMSE):
                     Model       Dataset Target     MAE    RMSE  Overfit_Ratio  Time_predict
-GradientBoostingRegressor      dataset1     DD 1.39740 2.07810        5.19373       0.00047
-                      SVR      dataset1     DD 1.44650 2.44810        1.30305       0.00034
-      ExtraTreesRegressor      dataset1     DD 1.44840 1.86440        2.08915       0.00820
-                 SVR_poly dataset1_poly     DD 1.56800 2.58750        1.56767       0.00335
-    RandomForestRegressor      dataset1     DD 1.90440 2.48210        1.65376       0.00785
-      LinearTreeRegressor      dataset1     DD 2.10400 3.25910        1.66092       0.00060
+GradientBoostingRegressor      dataset1     DD 1.39740 2.07810        5.19373       0.00049
+                      SVR      dataset1     DD 1.44650 2.44810        1.30305       0.00292
+      ExtraTreesRegressor      dataset1     DD 1.44840 1.86440        2.08915       0.01078
+                 SVR_poly dataset1_poly     DD 1.56800 2.58750        1.56767       0.00037
+    RandomForestRegressor      dataset1     DD 1.90440 2.48210        1.65376       0.01735
+      LinearTreeRegressor      dataset1     DD 2.10400 3.25910        1.66092       0.00058
 
 ================================================================================
